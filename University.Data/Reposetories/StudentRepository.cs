@@ -41,6 +41,11 @@ namespace University.Data.Reposetories
             return _context.Students.ToList();
         }
 
+        public bool GetByEmail(string email)
+        {
+            return _context.Students.Any(s => s.Email == email);
+        }
+
         public Student GetById(int id)
         {
             return _context.Students.Find( id);
@@ -71,6 +76,7 @@ namespace University.Data.Reposetories
         void create(Student student);
         void update(Student student);
         void delete(Student student);
+        bool GetByEmail(string email);
         void SaveChanges();
         }
 }

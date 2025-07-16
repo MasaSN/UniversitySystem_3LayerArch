@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using University.Core.dtos;
+using University.Core.Exceptions;
 using University.Core.forms;
+using University.Core.Validations;
 using University.Data.Entities;
 using University.Data.Reposetories;
 
@@ -13,23 +16,27 @@ namespace University.Core.services
     public class StudentService : IStudentService
     {
         private readonly IStudentRepository _studentRepository;
-        public StudentService(IStudentRepository studentRepository)
+        private readonly ILogger<StudentService> _logger;
+        public StudentService(IStudentRepository studentRepository, ILogger<StudentService>logger)
         {
             _studentRepository = studentRepository;
+            _logger = logger;
         }
 
-        public void Create(CreateStudentFrom form)
+        public  void Create(CreateStudentFrom form)
         {
-            if (form == null) 
-            { 
-                throw new ArgumentNullException(nameof(form)); 
-            }
-            if (string.IsNullOrWhiteSpace(form.Name)) { 
-                throw new ArgumentNullException(nameof(form.Name));
-            }
-            if (string.IsNullOrWhiteSpace(form.Email))
+            var validation = FormValidator.Validate(form);
+            if (!validation.isValid)
             {
-                throw new ArgumentNullException(nameof(form.Email));
+                throw new BussinessException(validation.Errors);
+            }
+            var existingStudent = _studentRepository.GetByEmail(form.Email);
+            if (existingStudent)
+            {
+                throw new BussinessException(new Dictionary<string, List<string>>()
+                {
+                    { "Email", new List<string>() { "Email already exists" } }
+                });
             }
             var student = new Student()
             {
@@ -45,7 +52,7 @@ namespace University.Core.services
         {
             var student = _studentRepository.GetById(id);
             if (student == null) {
-                throw new ArgumentNullException(nameof(student));    
+                throw new NotFoundException("student not found");    
             }
             _studentRepository.delete(student);
         }
@@ -61,12 +68,15 @@ namespace University.Core.services
             return dtos;
         }
 
+       
+
         public StudentDTO GetById(int id)
         {
+            _logger.LogInformation($"Getting student by id {id}", id);
             var student = _studentRepository.GetById(id);
             if (student == null)
             {
-                throw new ArgumentNullException(nameof(student));
+                throw new NotFoundException("unable to find student");
             }
             var dto = new StudentDTO()
             {
@@ -83,15 +93,16 @@ namespace University.Core.services
             {
                 throw new ArgumentNullException(nameof(form));
             }
-            if (string.IsNullOrWhiteSpace(form.Name))
+            var validation = FormValidator.Validate(form);
+            if (!validation.isValid)
             {
-                throw new ArgumentNullException(nameof(form.Name));
+                throw new BussinessException(validation.Errors);
             }
 
             var student = _studentRepository.GetById(id);
             if(student == null)
             {
-                throw new ArgumentNullException(nameof(student));
+                throw new NotFoundException("unable to find student");
             }
             student.Name = form.Name;
 
@@ -106,5 +117,6 @@ namespace University.Core.services
         void Create(CreateStudentFrom studentDTO);
         void Update(int id, UpdateStudentForm studentDTO);
         void Delete(int id);
+        //void GetByEmail(string email);
     }
 }

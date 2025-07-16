@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace University.Data.Entities
 {
+    [Index(nameof(Email), IsUnique = true)]
     public class Student
     {
         public int Id { get; set; }

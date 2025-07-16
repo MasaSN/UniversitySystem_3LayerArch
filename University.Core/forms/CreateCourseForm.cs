@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 
 namespace University.Core.forms
 {
-    public class UpdateStudentForm
+    public class CreateCourseForm
     {
         [Required]
-        public string Name { get; set; }
+        public string CourseName { get; set; }
+        public string description { get; set; }
     }
 }
