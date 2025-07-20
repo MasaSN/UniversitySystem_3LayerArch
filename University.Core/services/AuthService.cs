@@ -33,16 +33,19 @@ namespace University.Core.services
         public async Task<UserDTO> Register(RegisterForm form)
         {
             if (form == null) throw new ArgumentNullException("form");
+
             var validation = FormValidator.Validate(form);
             if (!validation.isValid)
             {
                 throw new BussinessException(validation.Errors);
             }
+
             var userExists = await _userManager.FindByEmailAsync(form.Email);
             if (userExists != null)
             {
                 throw new BussinessException("User Already exist with this email");
             }
+
             var user = new User()
             {
                 FirstName = form.FirstName,
@@ -50,24 +53,38 @@ namespace University.Core.services
                 Email = form.Email,
                 UserName = form.Email
             };
+
             var result = await _userManager.CreateAsync(user, form.Password);
-            _logger.LogInformation("Role that isn't being returned: {Role}, ", form.Role);
+            _logger.LogInformation("Role that isn't being returned: {Role}", form.Role);
+
             if (!result.Succeeded)
             {
-                _logger.LogError("❌ Failed to create role {Role}. Errors: {Errors}", form.Role);
-
+                _logger.LogError(":x: Failed to create user. Errors: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
                 throw new BussinessException(result.Errors
                     .GroupBy(x => x.Code)
                     .ToDictionary(x => x.Key, x => x.Select(e => e.Description).ToList()));
-
             }
+
             if (!await _roleManager.RoleExistsAsync(form.Role))
             {
-                 await _roleManager.CreateAsync(new Role { Name = form.Role});
-                
-
+                var roleResult = await _roleManager.CreateAsync(new Role { Name = form.Role });
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogError(":x: Failed to create role {Role}. Errors: {Errors}",
+                        form.Role, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    throw new BussinessException($"Failed to create role: {form.Role}");
+                }
             }
-            await _userManager.AddToRoleAsync(user, form.Role);
+
+            var addToRoleResult = await _userManager.AddToRoleAsync(user, form.Role);
+            if (!addToRoleResult.Succeeded)
+            {
+                _logger.LogError(":x: Failed to add user to role {Role}. Errors: {Errors}",
+                    form.Role, string.Join(", ", addToRoleResult.Errors.Select(e => e.Description)));
+                throw new BussinessException($"Failed to add user to role: {form.Role}");
+            }
+
             return new UserDTO()
             {
                 Id = user.Id,
