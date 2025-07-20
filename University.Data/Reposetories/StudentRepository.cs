@@ -9,22 +9,24 @@ using University.Data.Entities;
 namespace University.Data.Reposetories
 {
     public class StudentRepository : IStudentRepository
-
     {
         private readonly UniversityContext _context;
-        public StudentRepository(UniversityContext context) {
+
+       
+
+        public StudentRepository(UniversityContext context)
+        {
             _context = context;
-            
         }
+
         public void create(Student student)
         {
-            if(student == null)
+            if (student == null)
             {
                 throw new ArgumentNullException(nameof(student));
             }
             student.CreatedAt = DateTime.Now;
             _context.Students.Add(student);
-            
         }
 
         public void delete(Student student)
@@ -41,14 +43,15 @@ namespace University.Data.Reposetories
             return _context.Students.ToList();
         }
 
-        public bool GetByEmail(string email)
+        public Student? GetByEmail(string email)
         {
-            return _context.Students.Any(s => s.Email == email);
+            return _context.Students.FirstOrDefault(s => s.Email == email);
         }
+
 
         public Student GetById(int id)
         {
-            return _context.Students.Find( id);
+            return _context.Students.Find(id);
         }
 
         public void SaveChanges()
@@ -64,19 +67,16 @@ namespace University.Data.Reposetories
             }
             student.UpdatedAt = DateTime.Now;
             _context.Students.Update(student);
-
         }
-
     }
     public interface IStudentRepository
-        {
+    {
         Student GetById(int id);
-        
-        List <Student> GetAll();
+        List<Student> GetAll();
         void create(Student student);
         void update(Student student);
         void delete(Student student);
-        bool GetByEmail(string email);
+        Student? GetByEmail(string email);
         void SaveChanges();
-        }
+    }
 }

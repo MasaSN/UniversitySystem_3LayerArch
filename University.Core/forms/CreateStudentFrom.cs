@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace University.Core.forms
 {
-    public class CreateStudentFrom : IValidateOptions<CreateStudentFrom>
+    public class CreateStudentFrom 
     {
         [Required]
         public string Name { get; set; }
@@ -17,9 +17,6 @@ namespace University.Core.forms
         
         public string Email { get; set; }
 
-        public ValidateOptionsResult Validate(string? name, CreateStudentFrom options)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

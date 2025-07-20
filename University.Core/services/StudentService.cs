@@ -30,14 +30,15 @@ namespace University.Core.services
             {
                 throw new BussinessException(validation.Errors);
             }
-            var existingStudent = _studentRepository.GetByEmail(form.Email);
-            if (existingStudent)
-            {
-                throw new BussinessException(new Dictionary<string, List<string>>()
-                {
-                    { "Email", new List<string>() { "Email already exists" } }
-                });
-            }
+            //var existingStudent = _studentRepository.GetByEmail(form.Email);
+            //if (existingStudent != null)
+            //{
+            //    throw new BussinessException(new Dictionary<string, List<string>>
+            //{
+            //    { "Email", new List<string> { "Email already exists" } }
+            //});
+            //        }
+
             var student = new Student()
             {
                 Name = form.Name,
@@ -51,17 +52,21 @@ namespace University.Core.services
         public void Delete(int id)
         {
             var student = _studentRepository.GetById(id);
-            if (student == null) {
-                throw new NotFoundException("student not found");    
+            if (student == null)
+            {
+                throw new NotFoundException("student not found");
             }
             _studentRepository.delete(student);
+            _studentRepository.SaveChanges(); // ✅ This commits the deletion
         }
+
 
         public List<StudentDTO> GetAll()
         {
             var students = _studentRepository.GetAll();
             var dtos = students.Select(students => new StudentDTO()
             {
+                Id = students.Id,
                 Name = students.Name,
                 Email = students.Email,
             }).ToList();
