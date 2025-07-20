@@ -41,6 +41,7 @@ namespace UniversitySystem_3LayerArch.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(StudentDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Authorize(Roles ="Student")]
         public ApiResponse GetAll()
         {
             var dto = _studentService.GetAll();
